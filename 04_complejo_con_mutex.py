@@ -14,14 +14,8 @@ class EstacionamientoComplejo:
         self.puestos = {i: {"ocupado": False, "vehiculo": None}
                         for i in range(1, capacidad + 1)}
         self.lock = threading.Lock()  # Mutex para el diccionario.
-        self.semaforo = threading.BoundedSemaphore(capacidad)  # Cupos disponibles.
 
     def ingresar(self, vehiculo_id):
-        # El semáforo controla cupos; con blocking=False se rechaza si está lleno.
-        if not self.semaforo.acquire(blocking=False):
-            print(f"[{vehiculo_id}] Estacionamiento lleno.")
-            return None
-
         #  INICIO DE LA SECCIÓN CRÍTICA PROTEGIDA 
         with self.lock:  
             for puesto_id, datos in self.puestos.items():
@@ -31,7 +25,7 @@ class EstacionamientoComplejo:
                     print(f"[{vehiculo_id}] Puesto #{puesto_id} asignado.")
                     return puesto_id
         #  FIN DE LA SECCIÓN CRÍTICA 
-        self.semaforo.release()
+        print(f"[{vehiculo_id}] Estacionamiento lleno.")
         return None
 
     def salir(self, puesto_id, vehiculo_id):
@@ -46,7 +40,6 @@ class EstacionamientoComplejo:
             datos["vehiculo"] = None
             print(f"[{vehiculo_id}] Liberó el puesto #{puesto_id}.")
         #  FIN DE LA SECCIÓN CRÍTICA; MUTEX LIBERADO 
-        self.semaforo.release()  
         return True
 
 

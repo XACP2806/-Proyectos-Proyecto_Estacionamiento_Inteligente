@@ -12,14 +12,8 @@ class EstacionamientoBasico:
         self.capacidad_maxima = capacidad
         self.espacios_disponibles = capacidad  # Recurso compartido: int
         self.lock = threading.Lock()  # Mutex: solo un hilo modifica el contador.
-        self.semaforo = threading.BoundedSemaphore(capacidad)  # Permisos de cupos.
 
     def ingresar(self, vehiculo_id):
-        # El semáforo controla los cupos; NO reemplaza el mutex.
-        if not self.semaforo.acquire(blocking=False):
-            print(f"[{vehiculo_id}] Estacionamiento lleno.")
-            return False
-
         #  INICIO DE LA SECCIÓN CRÍTICA PROTEGIDA 
         with self.lock:  
             if self.espacios_disponibles > 0:
@@ -28,7 +22,7 @@ class EstacionamientoBasico:
                       f"Libres: {self.espacios_disponibles}")
                 return True
         #  FIN DE LA SECCIÓN CRÍTICA 
-        self.semaforo.release()
+        print(f"[{vehiculo_id}] Estacionamiento lleno.")
         return False
 
     def salir(self, vehiculo_id):
@@ -40,7 +34,6 @@ class EstacionamientoBasico:
             print(f"[{vehiculo_id}] Salida registrada. "
                   f"Libres: {self.espacios_disponibles}")
         #  FIN DE LA SECCIÓN CRÍTICA; MUTEX LIBERADO 
-        self.semaforo.release() 
         return True
 
 
